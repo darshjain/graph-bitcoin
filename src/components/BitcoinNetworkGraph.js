@@ -11,41 +11,73 @@ const BitcoinNetworkGraph = ({ data }) => {
       return
     }
 
-    const uniqueIds = new Set() // Track unique IDs
+    const uniqueAddresses = new Set() // Track unique addresses
+    const nodes = new DataSet()
+    const edges = new DataSet()
 
-    const inboundNodes = data.bitcoin.inbound.map((transaction) => {
-      const id = transaction.sender.address
-      uniqueIds.add(id)
-      return {
-        id,
-        label: id,
-        color: '#ff5722',
+    // Create nodes and edges for inbound transactions
+    data.bitcoin.inbound.forEach((transaction) => {
+      const senderAddress = transaction.sender.address
+      const receiverAddress = transaction.receiver.address
+
+      // Add sender node if not already present
+      if (!uniqueAddresses.has(senderAddress)) {
+        nodes.add({
+          id: senderAddress,
+          label: senderAddress,
+          color: '#ff5722',
+        })
+        uniqueAddresses.add(senderAddress)
       }
+
+      // Add receiver node if not already present
+      if (!uniqueAddresses.has(receiverAddress)) {
+        nodes.add({
+          id: receiverAddress,
+          label: receiverAddress,
+          color: '#2196f3',
+        })
+        uniqueAddresses.add(receiverAddress)
+      }
+
+      // Add edge between sender and receiver
+      edges.add({
+        from: senderAddress,
+        to: receiverAddress,
+      })
     })
 
-    const outboundNodes = data.bitcoin.outbound.map((transaction) => {
-      const id = transaction.receiver.address
-      uniqueIds.add(id)
-      return {
-        id,
-        label: id,
-        color: '#2196f3',
+    // Create nodes and edges for outbound transactions
+    data.bitcoin.outbound.forEach((transaction) => {
+      const senderAddress = transaction.sender.address
+      const receiverAddress = transaction.receiver.address
+
+      // Add sender node if not already present
+      if (!uniqueAddresses.has(senderAddress)) {
+        nodes.add({
+          id: senderAddress,
+          label: senderAddress,
+          color: '#ff5722',
+        })
+        uniqueAddresses.add(senderAddress)
       }
+
+      // Add receiver node if not already present
+      if (!uniqueAddresses.has(receiverAddress)) {
+        nodes.add({
+          id: receiverAddress,
+          label: receiverAddress,
+          color: '#2196f3',
+        })
+        uniqueAddresses.add(receiverAddress)
+      }
+
+      // Add edge between sender and receiver
+      edges.add({
+        from: senderAddress,
+        to: receiverAddress,
+      })
     })
-
-    const nodes = new DataSet([...inboundNodes, ...outboundNodes])
-
-    const inboundEdges = data.bitcoin.inbound.map((transaction) => ({
-      from: transaction.sender.address,
-      to: transaction.receiver.address,
-    }))
-
-    const outboundEdges = data.bitcoin.outbound.map((transaction) => ({
-      from: transaction.sender.address,
-      to: transaction.receiver.address,
-    }))
-
-    const edges = new DataSet([...inboundEdges, ...outboundEdges])
 
     const graphData = {
       nodes,
